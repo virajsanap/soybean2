@@ -1,0 +1,28 @@
+#root{
+    width: 100vw; /* Full width of the viewport */
+    height: 100vh; /* Full height of the viewport */
+    margin: 0;     /* Remove default margin */
+    padding: 0;    /* Remove default padding */
+}
+
+.nav-link.active {
+    background-color: black !important;
+    color: white !important;
+    border-radius: 5px; /* Optional for rounded corners */
+    padding: 0.5rem 1rem; /* Adjust padding for spacing */
+}
+
+.nav-link:hover {
+    background-color: #333 !important; /* Slightly lighter shade for hover effect */
+    color: white !important;
+    border-radius: 5px;
+}
+
+.content-section {
+    background-color: #17a2b8; /* Bootstrap 'bg-info' color */
+    display: flex;
+}
+
+#main-content {
+    flex: 1;
+  }
