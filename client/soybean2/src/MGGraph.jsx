@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Plot from "react-plotly.js"; 
 
-const MGGraph = ({ plotData, layout, optimalMG }) => {
+const MGGraph = ({ plotData, layout, optimalDate }) => {
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
     const MGRange = [2,8]
     // Handle window resizing to detect device type
@@ -57,10 +57,10 @@ const MGGraph = ({ plotData, layout, optimalMG }) => {
     return (
       <div className="container-fluid p-0">
         {/* Display optimal maturity group if available */}
-        {optimalMG && (
-          <p className="fw-bold mb-2">
-            Optimal Maturity Group: <span>{optimalMG}</span>
-          </p>
+        {optimalDate && (
+            <p className="fw-bold mb-2">
+                Optimal Maturity Group: <span>{optimalDate}</span>
+            </p>
         )}
   
         {/* Display graph or a fallback message */}

@@ -1,285 +1,181 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 import numpy as np
-import pandas as pd
 import joblib
 from datetime import datetime
-import plotly.express as px
+from collections import defaultdict
 
 app = Flask(__name__)
-cors = CORS(app,origins='*')
+cors = CORS(app, resources={r"/api/*": {"origins": "http://localhost:5173"}})
 
-#hyper-parameters
+# Configuration
 MAX_YIELD = 125
 MIN_YIELD = 15
-MAX_DATA = np.array([228, 8, 175000, 36.388502, -76.123188])
-MIN_DATA = np.array([72, 2, 75000, 34.683317, -80.72672])
-
-current_model = None 
-new_df = None
-
-model_dict = {
+MODEL_PATHS = {
     "N. Piedmont": "models/North_Coastal_Plain_model_pipeline.pkl",
     "Tidewater": "models/Tidewater_model_pipeline.pkl",
     "N. Coastal Plain": "models/North_Coastal_Plain_model_pipeline.pkl",
     "S. Piedmont": "models/South_Piedmont_model_pipeline.pkl",
     "S. Coastal Plain": "models/South_Coastal_Plain_model_pipeline.pkl"
 }
-#-------------------------------------------------------------------------------------------------------------------
-@app.route("/home", methods =['GET'])
+# Global state
+current_model = None
+processed_data = None
 
+# Helper functions
+def day_num_to_date(day_num):
+    return datetime.strptime(f"2024-{int(day_num)}", "%Y-%j").strftime("%m/%d/%Y")
+
+def generate_plot_data(x_values, y_values, optimal_point):
+    return {
+        "data": [
+            {
+                "x": x_values,
+                "y": y_values,
+                "type": "scatter",
+                "mode": "lines+markers",
+                "name": "Yield Index"
+            },
+            {
+                "x": [optimal_point[0]],
+                "y": [optimal_point[1]],
+                "mode": "markers",
+                "marker": {"color": "red", "size": 10},
+                "name": "Optimal Point"
+            }
+        ],
+        "layout": {
+            "yaxis": {"range": [min(y_values)-5, max(y_values)+5]},
+            "showlegend": True
+        }
+    }
+
+# Routes
+@app.route("/home", methods=['GET'])
 def home():
-    return jsonify(
-        message="Hello from the Flask backend!"
-    )
+    return jsonify(message="Hello from the optimized Flask backend!")
 
 @app.route('/api/select_region', methods=['POST'])
 def select_region():
-    global current_model
-    global new_df
+    global current_model, processed_data
     data = request.json
-    selected_region = data.get('region')
-    
-    if not selected_region:
-        return jsonify({"error": "No region provided"}), 400
-    
+    region = data.get('region', '').strip()
+
+    if not region or region not in MODEL_PATHS:
+        return jsonify(error="Invalid region specified"), 400
+
     try:
-        model_path, model = load_model(selected_region)
-        current_model = model
-        l = new_generate_data()
-        new_df = inference(l,model)
-        return jsonify({
-            "message": f"Received region: {selected_region}",
-            "model_path": model_path
-        })
-    except KeyError:
-        return jsonify({"error": f"Invalid region: {selected_region}"}), 400
-    except FileNotFoundError:
-        return jsonify({"error": f"Model file not found for region: {selected_region}"}), 500
+        with open(MODEL_PATHS[region], 'rb') as f:
+            current_model = joblib.load(f)
+        
+        # Generate parameter space
+        planting_dates = np.arange(92, 213)  # April 1 to July 31
+        maturity_groups = np.arange(2.0, 8.1, 0.1)
+        seeding_rates = np.arange(75000, 180000, 5000)
+        
+        # Create parameter grid
+        params = np.array(np.meshgrid(planting_dates, maturity_groups, seeding_rates)).T.reshape(-1, 3)
+        predictions = current_model.predict(params)
+        
+        # Process predictions
+        grouped = defaultdict(list)
+        for row, pred in zip(params, predictions):
+            key = (row[0], round(row[1], 1))  # (planting_date, maturity_group)
+            grouped[key].append(pred[0])
+        
+        # Calculate means and normalize
+        processed = []
+        for (pd, mg), yields in grouped.items():
+            y_mean = np.clip(np.mean(yields), MIN_YIELD, MAX_YIELD)
+            processed.append([pd, mg, y_mean])
+        
+        processed = np.array(processed)
+        y_min, y_max = processed[:, 2].min(), processed[:, 2].max()
+        processed = np.column_stack((processed, ((processed[:, 2] - y_min) / (y_max - y_min)) * 100))
+        
+        processed_data = processed
+        return jsonify(message=f"{region} model loaded successfully")
+        
     except Exception as e:
-        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
-#----------------------------------------------------------------------------------------------------------------------
-#Loading ML model based on region selected
-def load_model(selected_region):
-    print("in load model function")
-    model_path = model_dict[selected_region.strip()]
-    try:
-        with open(model_path, 'rb') as file:
-            model = joblib.load(file)
-    except FileNotFoundError:
-        raise FileNotFoundError(f"Model file not found for region: {selected_region}")
-    except Exception as e:
-        # print(e)
-        raise Exception(f"Error loading the model: {e}")
-    
-    print(f"{model_path} model is selected")
-    return model_path, model
+        return jsonify(error=f"Model loading failed: {str(e)}"), 500
 
-def new_generate_data():
-    pd_i = 92 #92
-    pd_f = 212
-    reference_year = 2024
-    pd_arr = np.arange(pd_i, pd_f+1, 1) #72,212+1
-    mg_array = np.arange(2, 8.1, 0.1)
-    sr_array = np.arange(75000, 180000, 5000)
-    print(f"pd_i, pd_f, ref_year: {pd_i},{pd_f},{reference_year}")
-    print(f"pd_arr: {pd_arr}")
-    l=[]
-    for pd in pd_arr:
-        for mg in mg_array:
-            for sr in sr_array:
-                l.append([pd, round(mg, 2), sr])
-    l = np.array(l)
-    print(f"l : {l}")
-    return l
-
-#Inference
-def inference(batch_data, model):
-
-    y = model.predict(batch_data)
-    print(f"y: {y}")
-    if y[0][0]<MIN_YIELD:
-        y[0][0]=MIN_YIELD
-    
-    #batch_data from np.array to pd.DataFrame if not already
-    if isinstance(batch_data, np.ndarray):
-        batch_data_df = pd.DataFrame(batch_data, columns=["Planting Date", "Maturity Group", "Seeding Rate (seeds/acre)"])
-    else:
-        batch_data_df = batch_data
-
-    y_df = pd.DataFrame(y,columns=['Predicted Yield'])
-    newdf = pd.concat([batch_data_df,y_df],axis=1)
-
-    # seeding_rate_mean = newdf['Seeding Rate (seeds/acre)'].mean()
-    newdf = newdf.groupby(['Planting Date','Maturity Group'])['Predicted Yield'].mean().reset_index()
-    #minmax standardization  on the predicted yield to get Yield Index
-    y_min = newdf['Predicted Yield'].min()
-    y_max = newdf['Predicted Yield'].max()
-    newdf['Yield Index'] = ((newdf['Predicted Yield']-y_min)/(y_max-y_min))*100
-    return newdf
-#------------------------------------------------------------------------------------------------------------------------------
-# Optimizer
-#PD optimizer
 @app.route('/api/pd_optimiser', methods=['POST'])
 def pd_optimiser():
-    global new_df
+    global processed_data
     try:
-        # Get input data from the frontend
         data = request.json
-        pd_start = data.get('start_date')  # Expected format: YYYY-MM-DD
-        pd_end = data.get('end_date')    # Expected format: YYYY-MM-DD
-        mg_min = float(data.get('mg_min', 2.0))  # Ensure mg_min is float
-        mg_max = float(data.get('mg_max', 8.0))  # Ensure mg_max is float
+        start_day = datetime.strptime(data['start_date'], '%Y-%m-%d').timetuple().tm_yday
+        end_day = datetime.strptime(data['end_date'], '%Y-%m-%d').timetuple().tm_yday
+        mg_min = float(data.get('mg_min', 2.0))
+        mg_max = float(data.get('mg_max', 8.0))
 
-        mg_range = [mg_min, mg_max]
+        # Filter data
+        mask = (processed_data[:, 0] >= start_day) & (processed_data[:, 0] <= end_day) & \
+               (processed_data[:, 1] >= mg_min) & (processed_data[:, 1] <= mg_max)
+        filtered = processed_data[mask]
 
-        if not (pd_start and pd_end):
-            return jsonify({"error": "Start date and End date are required."}), 400
+        # Group by planting date
+        date_groups = defaultdict(list)
+        for row in filtered:
+            date_groups[row[0]].append(row[3])  # Yield Index
 
-        # Convert dates to day-of-year
-        pd_start_num = int(datetime.strptime(pd_start, '%Y-%m-%d').timetuple().tm_yday)
-        pd_end_num = int(datetime.strptime(pd_end, '%Y-%m-%d').timetuple().tm_yday)
-
-        if pd_end_num < pd_start_num:
-            return jsonify({"error": "End date cannot be before Start date."}), 400
-
-        # Filter data based on inputs
-        filtered_df = new_df[(new_df["Planting Date"] >= pd_start_num) & (new_df["Planting Date"] <= pd_end_num)]
-        filtered_df = filtered_df[(filtered_df["Maturity Group"] >= mg_range[0]) & (filtered_df["Maturity Group"] <= mg_range[1])]
-
-        # Convert Planting Date back to MM/DD/YYYY
-        current_year = datetime.now().year
-        filtered_df['Planting Date'] = filtered_df['Planting Date'].apply(
-            lambda day_num: datetime.strptime(f"{current_year}-{int(day_num)}", "%Y-%j").strftime("%m/%d/%Y")
+        dates, averages = zip(*[(k, np.mean(v)) for k, v in date_groups.items()])
+        optimal_idx = np.argmax(averages)
+        
+        # Generate plot data
+        date_labels = [day_num_to_date(d) for d in dates]
+        plot_data = generate_plot_data(
+            x_values=date_labels,
+            y_values=averages,
+            optimal_point=(date_labels[optimal_idx], averages[optimal_idx])
         )
 
-        # Generate the plot
-        fig, optimal_pd = plot_pd(filtered_df, "Planting Date", "Yield Index")
-
-        # Format optimal planting date
-        date_obj = datetime.strptime(optimal_pd, "%m/%d/%Y")
-        formatted_opt_date = date_obj.strftime("%d %B %Y")
-
-        # Serialize Plotly figure to JSON
-        plot_json = fig.to_json()
-
-        # Return the plot and optimal planting date
-        response = {
-            "plot": plot_json,  # Convert plotly figure to JSON
-            "optimal_date": formatted_opt_date
-        }
-        return jsonify(response), 200
+        return jsonify({
+            "plot": plot_data,
+            "optimal_date": datetime.strptime(date_labels[optimal_idx], "%m/%d/%Y").strftime("%d %B %Y")
+        })
 
     except Exception as e:
-        print(e)
-        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+        return jsonify(error=str(e)), 500
 
-def plot_pd(df, x_var, y_var, opt=True, base_val=0):
-    mean_y_by_x = df.groupby([x_var])[y_var].mean().reset_index()
-    max_y_row = mean_y_by_x.loc[mean_y_by_x["Yield Index"].idxmax()]
-    
-    x_optim = max_y_row[x_var]
-    if isinstance(x_optim, (int, float)):
-        x_optim = round(float(x_optim), 2)
-    else:
-        x_optim = datetime.strptime(x_optim, '%m/%d/%Y').strftime('%d %b %Y')
-
-    fig = px.line(mean_y_by_x, x=x_var, y=y_var,
-                  labels={x_var: x_var, y_var: "Relative Yield Potential"},
-                  hover_data=[x_var, y_var])
-    fig.update_traces(mode='markers+lines',marker=dict(size = 3))
-
-    if opt:
-        fig.add_scatter(x=[max_y_row[x_var]], y=[max_y_row[y_var]],
-                        mode='markers', marker=dict(color='red', size=10), hoverinfo="skip",
-                        name='Optimal Point')
-
-    fig.update_layout(yaxis=dict(range=[base_val, mean_y_by_x[y_var].max() + 5]),
-                      legend=dict(x=0.8, y=0))
-    return fig, max_y_row[x_var]
-#-----------------------------------------------------------------------------------------------------------------------------------
-# Optimizer
-#MG Optimizer
 @app.route('/api/mg_optimiser', methods=['POST'])
 def mg_optimiser():
-    global new_df
+    global processed_data
     try:
         data = request.json
-        pd_start = data.get('start_date')  # Expected format: YYYY-MM-DD
-        pd_end = data.get('end_date')    # Expected format: YYYY-MM-DD
-        mg_min = float(data.get('mg_min', 2.0))  # Ensure mg_min is float
-        mg_max = float(data.get('mg_max', 8.0))  # Ensure mg_max is float
+        start_day = datetime.strptime(data['start_date'], '%Y-%m-%d').timetuple().tm_yday
+        end_day = datetime.strptime(data['end_date'], '%Y-%m-%d').timetuple().tm_yday
+        mg_min = float(data.get('mg_min', 2.0))
+        mg_max = float(data.get('mg_max', 8.0))
 
-        mg_range = [mg_min,mg_max]
-        if not (pd_start and pd_end):
-            return jsonify({"error": "Start date and End date are required."}), 400
+        # Filter data
+        mask = (processed_data[:, 0] >= start_day) & (processed_data[:, 0] <= end_day) & \
+               (processed_data[:, 1] >= mg_min) & (processed_data[:, 1] <= mg_max)
+        filtered = processed_data[mask]
 
-        # Convert dates to day-of-year
-        pd_start_num = int(datetime.strptime(pd_start, '%Y-%m-%d').timetuple().tm_yday)
-        pd_end_num = int(datetime.strptime(pd_end, '%Y-%m-%d').timetuple().tm_yday)
+        # Group by maturity group
+        mg_groups = defaultdict(list)
+        for row in filtered:
+            mg = round(row[1], 1)
+            mg_groups[mg].append(row[3])  # Yield Index
 
-        current_year = datetime.now().year
-
-        filtered_df = new_df[(new_df["Planting Date"] >= pd_start_num) & (new_df["Planting Date"] <= pd_end_num)] 
-        # Convert 'Planting Date' from numerical day-of-year to formatted string (MM/DD/YYYY)
-        filtered_df['Planting Date'] = filtered_df['Planting Date'].apply(lambda day_num: datetime.strptime(f"{current_year}-{int(day_num)}", "%Y-%j").strftime("%m/%d/%Y"))
-        filtered_df = filtered_df[(filtered_df["Maturity Group"] >= mg_range[0]) & (filtered_df["Maturity Group"] <= mg_range[1])]
-
-        fig,optimal_mg = plot_mg(filtered_df,"Maturity Group","Yield Index")
-
-        # Format the optimal planting date if it's a date
-        if isinstance(optimal_mg, str):
-            date_obj = datetime.strptime(optimal_mg, "%m/%d/%Y")
-            formatted_opt_date = date_obj.strftime("%d %B %Y")
-        else:
-            formatted_opt_date = optimal_mg  # Use as-is if it's not a date
-
-        plot_json = fig.to_json()
-        response = {
-            "plot": plot_json,  # Convert plotly figure to JSON
-            "optimal_date": formatted_opt_date
-        }
-        return jsonify(response), 200
-    
-    except Exception as e:
-        print(e)
-        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
-
-def plot_mg(df, x_var, y_var, opt=True, base_val=0):
-
-    # Group data by x_var and calculate the mean of y_var
-    mean_y_by_x = df.groupby([x_var])[y_var].mean().reset_index()
-
-    # Find the row with the maximum yield index
-    max_y_row = mean_y_by_x.loc[mean_y_by_x[y_var].idxmax()]
-    x_optim = max_y_row[x_var]
-
-    # Handle different types for x_optim
-    if isinstance(x_optim, (float, int)):
-        x_optim = round(x_optim, 2)  # Round numerical values
-    else:
-        # Parse and reformat date strings
-        x_optim = datetime.strptime(x_optim, '%m/%d/%Y').strftime('%d %b %Y')
-        mean_y_by_x[x_var] = mean_y_by_x[x_var].apply(
-            lambda x: datetime.strptime(x, '%m/%d/%Y').strftime('%d %b %Y')
+        mgs, averages = zip(*[(k, np.mean(v)) for k, v in mg_groups.items()])
+        optimal_idx = np.argmax(averages)
+        
+        # Generate plot data
+        plot_data = generate_plot_data(
+            x_values=[f"{mg:.1f}" for mg in mgs],
+            y_values=averages,
+            optimal_point=(f"{mgs[optimal_idx]:.1f}", averages[optimal_idx])
         )
-        max_y_row[x_var] = datetime.strptime(max_y_row[x_var], '%m/%d/%Y').strftime('%d %b %Y')
 
-    fig = px.line(mean_y_by_x, x=x_var, y=y_var,
-                  labels={x_var: x_var, y_var: "Relative Yield Potential"},
-                  hover_data=[x_var, y_var])
-    fig.update_traces(mode='markers+lines',marker=dict(size = 3))
+        return jsonify({
+            "plot": plot_data,
+            "optimal_mg": f"{mgs[optimal_idx]:.1f}"
+        })
 
-    if opt:
-        fig.add_scatter(x=[max_y_row[x_var]], y=[max_y_row[y_var]],
-                        mode='markers', marker=dict(color='red', size=10), hoverinfo="skip",
-                        name='Optimal Point')
+    except Exception as e:
+        return jsonify(error=str(e)), 500
 
-    fig.update_layout(yaxis=dict(range=[base_val, mean_y_by_x[y_var].max() + 5]),
-                      legend=dict(x=0.8, y=0))
-
-    return fig, x_optim
-
-#------------------------------------------------------------------------------------------------------------------------------------
-if __name__=="__main__":
-    app.run()
+if __name__ == "__main__":
+    app.run(debug=True, port=8181)

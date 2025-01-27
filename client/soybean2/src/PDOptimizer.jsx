@@ -27,46 +27,51 @@ function PDOptimizer(){
 
         try {
             const response = await fetch('http://localhost:8181/api/pd_optimiser', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify(data),
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data),
             });
-      
+    
             if (!response.ok) {
-              console.error('Failed to send data to backend');
-            } else {
-              const result = await response.json();
-              console.log('Response from backend:', result);
-
-              // Update graph data
-              setPlotData(JSON.parse(result.plot).data);
-              setLayout(JSON.parse(result.plot).layout);
-              setOptimalDate(result.optimal_date);
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
-          } catch (error) {
-            console.error('Error:', error);
-          }
+    
+            const result = await response.json();
+            
+            // Changed from JSON.parse(result.plot) to direct access
+            setPlotData(result.plot.data);
+            setLayout(result.plot.layout);
+            setOptimalDate(result.optimal_date);
+            setError('');
+    
+        } catch (error) {
+            console.error('Fetch error:', error);
+            setError('Failed to fetch optimization data. Please try again.');
+            setPlotData(null);
+            setLayout({});
+        }
     };
     
-    const handleMGChange = (event)=>{
-        const {name,value} = event.target;
-        if (name==='min'){
-            setMGMinValue(value)
-        }else if(name==='max'){
-            setMGMaxValue(value)
-        } 
+    const handleMGChange = (event) => {
+        const { name, value } = event.target;
+        // Add input validation
+        const numericValue = parseFloat(value).toFixed(1);
+        
+        if (name === 'min') {
+            setMGMinValue(numericValue);
+        } else if (name === 'max') {
+            setMGMaxValue(numericValue);
+        }
     };
 
+    // In useEffect validation:
     useEffect(() => {
-        if (parseFloat(MGMinValue) >= parseFloat(MGMaxValue)) {
-          setError('Minimum value must be less than maximum value');
-          setIsDataReady(false)
-        } else {
-          setError('');
-          setIsDataReady(true)
-        }
+        const min = parseFloat(MGMinValue);
+        const max = parseFloat(MGMaxValue);
+        const isValid = !isNaN(min) && !isNaN(max) && min < max;
+        
+        setIsDataReady(isValid);
+        setError(isValid ? '' : 'Minimum must be less than Maximum');
     }, [MGMinValue, MGMaxValue]);
 
     const generateOptions = (start,end,step)=>{

@@ -24,48 +24,53 @@ function MGOptimizer(){
         };
 
         try {
-            const response = await fetch('http://localhost:8181/api/mg_optimiser', {
+          const response = await fetch('/api/mg_optimiser', {
               method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
+              headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(data),
-            });
-      
-            if (!response.ok) {
-              console.error('Failed to send data to backend');
-            } else {
-              const result = await response.json();
-              console.log('Response from backend:', result);
-
-              // Update graph data
-              setMgPlotData(JSON.parse(result.plot).data);
-              setLayout(JSON.parse(result.plot).layout);
-              setMgOptimalDate(result.optimal_date);
-            }
-          } catch (error) {
-            console.error('Error:', error);
+          });
+  
+          if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
           }
-    };
-
-    
-    const handleMGChange = (event)=>{
-        const {name,value} = event.target;
-        if (name==='min'){
-            setMGMinValue(value)
-        }else if(name==='max'){
-            setMGMaxValue(value)
-        } 
-    };
-
-    useEffect(() => {
-        if (parseFloat(MGMinValue) >= parseFloat(MGMaxValue)) {
-          setError('Minimum value must be less than maximum value');
-        } else {
+  
+          const result = await response.json();
+          
+          // Remove JSON.parse since backend returns direct JSON
+          setMgPlotData(result.plot.data);
+          setLayout(result.plot.layout);
+          setMgOptimalDate(result.optimal_mg);  // Changed from optimal_date to optimal_mg
           setError('');
-          setIsDataReady(true)
-        }
-      }, [MGMinValue, MGMaxValue]);
+  
+      } catch (error) {
+          console.error('Fetch error:', error);
+          setError('Failed to fetch maturity group data');
+          setMgPlotData(null);
+          setLayout({});
+      }
+  };
+    
+    // Update handleMGChange with better validation
+    const handleMGChange = (event) => {
+      const { name, value } = event.target;
+      const numericValue = parseFloat(value).toFixed(1);
+      
+      if (name === 'min') {
+          setMGMinValue(numericValue);
+      } else if (name === 'max') {
+          setMGMaxValue(numericValue);
+      }
+    };
+
+    // Improve useEffect validation
+    useEffect(() => {
+      const min = parseFloat(MGMinValue);
+      const max = parseFloat(MGMaxValue);
+      const isValid = !isNaN(min) && !isNaN(max) && min < max;
+      
+      setIsDataReady(isValid);
+      setError(isValid ? '' : 'Minimum must be less than Maximum');
+    }, [MGMinValue, MGMaxValue]);
 
     const generateOptions = (start,end,step)=>{
         const options = [];
