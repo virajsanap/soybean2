@@ -1,12 +1,53 @@
 import React, { useState,useEffect } from "react";
-import Form from 'react-bootstrap/Form';
-import InputGroup from 'react-bootstrap/InputGroup';
-import Alert from 'react-bootstrap/Alert';
+import { InputGroup, Form, Alert, Button } from 'react-bootstrap';
+import { RegionContext, RegionProvider } from "./RegionContext";
+import MGGraph from "./MGGraph";
+
 
 function MGOptimizer(){
+    const [MgPlotData, setMgPlotData] = useState(null)
+    const [MgOptimalDate, setMgOptimalDate] = useState("");
+    const [layout, setLayout] = useState({});
     const [MGMinValue,setMGMinValue] = useState('2.0')
     const [MGMaxValue,setMGMaxValue] = useState('8.0')
+    const [startDate, setStartDate] = useState('2024-04-01');
+    const [endDate, setEndDate] = useState('2024-08-15');
     const [error, setError] = useState('');
+    const [isDataReady, setIsDataReady] = useState(false);
+
+    const sendDataToBackend = async () => {
+        const data = {
+          start_date: startDate,
+          end_date: endDate,
+          mg_min: MGMinValue,
+          mg_max: MGMaxValue,
+        };
+
+        try {
+            const response = await fetch('http://localhost:8181/api/mg_optimiser', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(data),
+            });
+      
+            if (!response.ok) {
+              console.error('Failed to send data to backend');
+            } else {
+              const result = await response.json();
+              console.log('Response from backend:', result);
+
+              // Update graph data
+              setMgPlotData(JSON.parse(result.plot).data);
+              setLayout(JSON.parse(result.plot).layout);
+              setMgOptimalDate(result.optimal_date);
+            }
+          } catch (error) {
+            console.error('Error:', error);
+          }
+    };
+
     
     const handleMGChange = (event)=>{
         const {name,value} = event.target;
@@ -22,6 +63,7 @@ function MGOptimizer(){
           setError('Minimum value must be less than maximum value');
         } else {
           setError('');
+          setIsDataReady(true)
         }
       }, [MGMinValue, MGMaxValue]);
 
@@ -46,7 +88,8 @@ function MGOptimizer(){
                     <input 
                     type="date" 
                     className="form-control" 
-                    defaultValue="2024-04-01" 
+                    value="2024-04-01"
+                    onChange={(e)=>setStartDate(e.target.value)} 
                     />
                 </div>
                 </div>
@@ -56,7 +99,8 @@ function MGOptimizer(){
                     <input 
                     type="date" 
                     className="form-control" 
-                    defaultValue="2024-08-15" 
+                    value="2024-08-15" 
+                    onChange={(e)=>setEndDate(e.target.value)} 
                     />
                 </div>
                 </div>
@@ -83,12 +127,32 @@ function MGOptimizer(){
                 </div>
             </div>
 
+            <Button
+            variant="primary"
+            onClick={sendDataToBackend}
+            disabled={!isDataReady} // Disable button if data is invalid
+            >
+            Submit
+            </Button>
+
+            <div className="container-fluid mb-2 mb-lg-3">
+            {/* Graph for large screens */}
+            <div className="d-none d-lg-block">
             <h4 className="text-center">Maturity Group Impact on Relative Yield Potential</h4>
-            {/* <p><em>Yield Potential Maximized at 06 May 2024</em></p> */}
-            
-            <div className="border rounded p-4 text-center bg-light">
-                Graph Content
+                <div className="border rounded p-3 bg-light">
+                <MGGraph plotData={MgPlotData} layout={layout} optimalDate={MgOptimalDate} />
+                </div>
             </div>
+
+            {/* Graph for small screens */}
+            <div className="d-block d-lg-none">
+                <h4 className="text-center">Maturity Group Impact on Relative Yield Potential</h4>
+                <div className="border rounded p-3 bg-light">
+                <MGGraph plotData={MgPlotData} layout={layout} optimalDate={MgOptimalDate} />
+                </div>
+            </div>
+            </div>
+
         </div>
         </>
     );

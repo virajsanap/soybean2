@@ -1,9 +1,11 @@
-import React,{useState,useEffect} from "react";
+import React,{useState,useEffect,createContext, useContext } from "react";
 import Map from './Map'
 import { MapContainer, TileLayer, GeoJSON } from "react-leaflet";
 import { useMediaQuery } from 'react-responsive';
 import ncGeoJson from "./resources/ncstate_counties.json";
 import ncRegionsGeoJson from './resources/ncregions_counties_merged.json';
+import { RegionContext} from "./RegionContext";
+//try
 
 function Region(){
 
@@ -12,10 +14,42 @@ function Region(){
     const isMobile = useMediaQuery({ maxWidth: 768 });
     const [zoomLevel, setZoomLevel] = useState(isMobile ? zoomm : zoomd);
     const [highlightedRegion, setHighlightedRegion] = useState(null);
-    const [selectedRegion, setSelectedRegion] = useState('Please select a region');
+    const { selectedRegion, setSelectedRegion } = useContext(RegionContext);
+
+    // Store selected region in localStorage when it changes
+    useEffect(() => {
+        if (selectedRegion && selectedRegion !== "Please select a region") {
+            localStorage.setItem('selectedRegion', selectedRegion);
+        }
+    }, [selectedRegion]);
+
+    const sendRegionToBackend = async (region) => {
+        try {
+          const response = await fetch('http://localhost:8181/api/select_region', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ region: region }),
+          });
+          
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          
+          const data = await response.json();
+          console.log('Response from backend:', data);
+        } catch (error) {
+          console.error('Error sending region to backend:', error);
+        }
+      };
 
     const handleRegionSelect = (region) => {
-    setSelectedRegion(region);
+        console.log("Region selected:", region);
+        setSelectedRegion(region);
+        sendRegionToBackend(region);
+        localStorage.setItem('selectedRegion', region);
+        
     };
 
     const regionColors = {
@@ -101,7 +135,16 @@ function Region(){
                             onRegionSelect={handleRegionSelect}
                         />
                         </div>
-                        <p>Selected Region: {selectedRegion}</p>
+                        {/* <p>Selected Region: {selectedRegion}</p> */}
+                        {selectedRegion === "Please select a region" ? (
+                            <div className="alert alert-danger mt-2 fs-5" role="alert">
+                                Please select a region
+                            </div>
+                        ) : (
+                            <div className="alert alert-success mt-2 fs-5" role="alert">
+                                Selected Region is {selectedRegion}
+                            </div>
+                        )}
                     </div>
         
                     {/* Map for small screens */}
@@ -117,7 +160,16 @@ function Region(){
                             onRegionSelect={handleRegionSelect}
                         /> 
                         </div>
-                        <p>Selected Region: {selectedRegion}</p>
+                        {/* <p>Selected Region: {selectedRegion}</p> */}
+                        {selectedRegion === "Please select a region" ? (
+                            <div className="alert alert-danger mt-2 fs-5" role="alert">
+                                Please select a region
+                            </div>
+                        ) : (
+                            <div className="alert alert-success mt-2 fs-5" role="alert">
+                                Selected Region is {selectedRegion}
+                            </div>
+                        )}
                     </div>
                     <div className="col-lg-5 col-12" style={{ overflowY: "auto", maxHeight: "400px" }}>
                         <h4>Instructions</h4>

@@ -1,12 +1,54 @@
-import React, { useState,useEffect } from "react";
-import Form from 'react-bootstrap/Form';
-import InputGroup from 'react-bootstrap/InputGroup';
-import Alert from 'react-bootstrap/Alert';
+import React, { useState,useEffect, useContext } from "react";
+import { InputGroup, Form, Alert, Button } from 'react-bootstrap';
+import { RegionContext, RegionProvider } from "./RegionContext";
+import PDGraph from "./PDGraph";
 
 function PDOptimizer(){
+    const Region = useContext(RegionContext)
     const [MGMinValue,setMGMinValue] = useState('2.0')
     const [MGMaxValue,setMGMaxValue] = useState('8.0')
+    const [startDate, setStartDate] = useState('2024-04-01');
+    const [endDate, setEndDate] = useState('2024-08-15');
     const [error, setError] = useState('');
+    const [isDataReady, setIsDataReady] = useState(false);
+
+    // States for Graph Data
+    const [plotData, setPlotData] = useState(null);
+    const [layout, setLayout] = useState({});
+    const [optimalDate, setOptimalDate] = useState("");
+
+    const sendDataToBackend = async () => {
+        const data = {
+          start_date: startDate,
+          end_date: endDate,
+          mg_min: MGMinValue,
+          mg_max: MGMaxValue,
+        };
+
+        try {
+            const response = await fetch('http://localhost:8181/api/pd_optimiser', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(data),
+            });
+      
+            if (!response.ok) {
+              console.error('Failed to send data to backend');
+            } else {
+              const result = await response.json();
+              console.log('Response from backend:', result);
+
+              // Update graph data
+              setPlotData(JSON.parse(result.plot).data);
+              setLayout(JSON.parse(result.plot).layout);
+              setOptimalDate(result.optimal_date);
+            }
+          } catch (error) {
+            console.error('Error:', error);
+          }
+    };
     
     const handleMGChange = (event)=>{
         const {name,value} = event.target;
@@ -20,10 +62,12 @@ function PDOptimizer(){
     useEffect(() => {
         if (parseFloat(MGMinValue) >= parseFloat(MGMaxValue)) {
           setError('Minimum value must be less than maximum value');
+          setIsDataReady(false)
         } else {
           setError('');
+          setIsDataReady(true)
         }
-      }, [MGMinValue, MGMaxValue]);
+    }, [MGMinValue, MGMaxValue]);
 
     const generateOptions = (start,end,step)=>{
         const options = [];
@@ -37,7 +81,7 @@ function PDOptimizer(){
         <>
         <div className="container">
             <h2>Planting Date Optimization</h2>
-            {/* <p>Selected location is <em>N. Piedmont</em></p> */}
+            {/* <p>Selected location is {Region}</p> */}
             <h4>Adjust Planting Date and Maturity Groups</h4>
             <div className="row mb-3">
                 <div className="col-md-3">
@@ -46,7 +90,8 @@ function PDOptimizer(){
                     <input 
                     type="date" 
                     className="form-control" 
-                    defaultValue="2024-04-01" 
+                    value="2024-04-01"
+                    onChange={(e)=>setStartDate(e.target.value)} 
                     />
                 </div>
                 </div>
@@ -56,7 +101,8 @@ function PDOptimizer(){
                     <input 
                     type="date" 
                     className="form-control" 
-                    defaultValue="2024-08-15" 
+                    value="2024-08-15" 
+                    onChange={(e)=>setEndDate(e.target.value)}
                     />
                 </div>
                 </div>
@@ -83,11 +129,33 @@ function PDOptimizer(){
                 </div>
             </div>
 
-            <h4 className="text-center">Planting Date Impact on Relative Yield Potential</h4>
+            <Button
+            variant="primary"
+            onClick={sendDataToBackend}
+            disabled={!isDataReady} // Disable button if data is invalid
+            >
+            Submit
+            </Button>
+            <hr></hr>
+            {/* <h4 className="text-center">Planting Date Impact on Relative Yield Potential</h4> */}
             {/* <p><em>Yield Potential Maximized at 06 May 2024</em></p> */}
             
-            <div className="border rounded p-4 text-center bg-light">
-                Graph Content
+            <div className="container-fluid mb-2 mb-lg-3">
+            {/* Graph for large screens */}
+            <div className="d-none d-lg-block">
+                <h4 className="text-center">Planting Date Impact on Relative Yield Potential</h4>
+                <div className="border rounded p-3 bg-light">
+                <PDGraph plotData={plotData} layout={layout} optimalDate={optimalDate} />
+                </div>
+            </div>
+
+            {/* Graph for small screens */}
+            <div className="d-block d-lg-none">
+                <h4 className="text-center">Planting Date Impact on Relative Yield Potential</h4>
+                <div className="border rounded p-3 bg-light">
+                <PDGraph plotData={plotData} layout={layout} optimalDate={optimalDate} />
+                </div>
+            </div>
             </div>
         </div>
         </>
