@@ -23,6 +23,7 @@ current_model = None
 processed_data = None
 
 # Helper functions
+
 def day_num_to_date(day_num):
     return datetime.strptime(f"2024-{int(day_num)}", "%Y-%j").strftime("%m/%d/%Y")
 
