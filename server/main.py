@@ -6,7 +6,8 @@ from datetime import datetime
 from collections import defaultdict
 
 app = Flask(__name__)
-cors = CORS(app, resources={r"/api/*": {"origins": "http://localhost:5173"}})
+cors = CORS(app, resources={r"/api/*": {"origins": ["https://soybean2.vercel.app", "http://localhost:5173"]}},
+    supports_credentials=True)
 
 # Configuration
 MAX_YIELD = 125
@@ -179,4 +180,4 @@ def mg_optimiser():
         return jsonify(error=str(e)), 500
 
 if __name__ == "__main__":
-    app.run(debug=True, port=8181)
+    app.run(host='0.0.0.0', port=8181, debug=False)

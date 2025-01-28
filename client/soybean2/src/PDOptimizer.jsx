@@ -26,11 +26,11 @@ function PDOptimizer(){
         };
 
         try {
-            const response = await fetch('http://localhost:8181/api/pd_optimiser', {
+            const response = await fetch(`https://soybean2-server.onrender.com/api/pd_optimiser`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data),
-            });
+              });
     
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);

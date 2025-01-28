@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      '/api': 'http://localhost:8181' // Your Flask backend port
+      '/api': 'https://soybean2-server.onrender.com' // Your Flask backend port
     }
   }
 })

@@ -25,13 +25,11 @@ function Region(){
 
     const sendRegionToBackend = async (region) => {
         try {
-          const response = await fetch('http://localhost:8181/api/select_region', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ region: region }),
-          });
+            const response = await fetch(`https://soybean2-server.onrender.com/api/select_region`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ region: region }),
+              });
           
           if (!response.ok) {
             throw new Error('Network response was not ok');

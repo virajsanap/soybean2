@@ -24,11 +24,11 @@ function MGOptimizer(){
         };
 
         try {
-          const response = await fetch('/api/mg_optimiser', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(data),
-          });
+            const response = await fetch(`https://soybean2-server.onrender.com/api/mg_optimiser`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data),
+              });
   
           if (!response.ok) {
               throw new Error(`HTTP error! status: ${response.status}`);
