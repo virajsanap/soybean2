@@ -12,11 +12,11 @@ cors = CORS(app, resources={r"/api/*": {"origins": "http://localhost:5173"}})
 MAX_YIELD = 125
 MIN_YIELD = 15
 MODEL_PATHS = {
-    "N. Piedmont": "models/North_Coastal_Plain_model_pipeline.pkl",
-    "Tidewater": "models/Tidewater_model_pipeline.pkl",
-    "N. Coastal Plain": "models/North_Coastal_Plain_model_pipeline.pkl",
-    "S. Piedmont": "models/South_Piedmont_model_pipeline.pkl",
-    "S. Coastal Plain": "models/South_Coastal_Plain_model_pipeline.pkl"
+    "N. Piedmont": "server/models/North_Coastal_Plain_model_pipeline.pkl",
+    "Tidewater": "server/models/Tidewater_model_pipeline.pkl",
+    "N. Coastal Plain": "server/models/North_Coastal_Plain_model_pipeline.pkl",
+    "S. Piedmont": "server/models/South_Piedmont_model_pipeline.pkl",
+    "S. Coastal Plain": "server/models/South_Coastal_Plain_model_pipeline.pkl"
 }
 # Global state
 current_model = None
