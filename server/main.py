@@ -13,11 +13,11 @@ cors = CORS(app, resources={r"/api/*": {"origins": ["https://soybean2.vercel.app
 MAX_YIELD = 125
 MIN_YIELD = 15
 MODEL_PATHS = {
-    "N. Piedmont": "server/models/North_Coastal_Plain_model_pipeline.pkl",
-    "Tidewater": "server/models/Tidewater_model_pipeline.pkl",
-    "N. Coastal Plain": "server/models/North_Coastal_Plain_model_pipeline.pkl",
-    "S. Piedmont": "server/models/South_Piedmont_model_pipeline.pkl",
-    "S. Coastal Plain": "server/models/South_Coastal_Plain_model_pipeline.pkl"
+    "N. Piedmont": "models/North_Coastal_Plain_model_pipeline.pkl",
+    "Tidewater": "models/Tidewater_model_pipeline.pkl",
+    "N. Coastal Plain": "models/North_Coastal_Plain_model_pipeline.pkl",
+    "S. Piedmont": "models/South_Piedmont_model_pipeline.pkl",
+    "S. Coastal Plain": "models/South_Coastal_Plain_model_pipeline.pkl"
 }
 # Global state
 current_model = None
@@ -99,6 +99,7 @@ def select_region():
         return jsonify(message=f"{region} model loaded successfully")
         
     except Exception as e:
+        print(e)
         return jsonify(error=f"Model loading failed: {str(e)}"), 500
 
 @app.route('/api/pd_optimiser', methods=['POST'])
@@ -180,4 +181,4 @@ def mg_optimiser():
         return jsonify(error=str(e)), 500
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=8181, debug=False)
+    app.run(host='0.0.0.0', port=8181, debug=True)
