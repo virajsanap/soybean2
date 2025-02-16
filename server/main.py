@@ -5,9 +5,11 @@ import joblib
 from datetime import datetime
 from collections import defaultdict
 
-app = Flask(__name__)
-cors = CORS(app, resources={r"/api/*": {"origins": ["https://soybean2.vercel.app", "http://localhost:5173"]}},
-    supports_credentials=True)
+# Initialize Flask app
+app = Flask(__name__, static_folder='../../client/soybean2/build', static_url_path='')
+
+# Configure CORS for API endpoints
+cors = CORS(app)
 
 # Configuration
 MAX_YIELD = 125
@@ -53,6 +55,10 @@ def generate_plot_data(x_values, y_values, optimal_point):
     }
 
 # Routes
+@app.route("/", methods=['GET'])
+def index():
+    return jsonify(message="Welcome to the Flask backend! Add /home to see more.")
+
 @app.route("/home", methods=['GET'])
 def home():
     return jsonify(message="Hello from the optimized Flask backend!")
@@ -181,4 +187,4 @@ def mg_optimiser():
         return jsonify(error=str(e)), 500
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=8181, debug=True)
+    app.run(host='0.0.0.0', port=8000, debug=True)

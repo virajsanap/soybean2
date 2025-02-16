@@ -26,7 +26,7 @@ function PDOptimizer(){
         };
 
         try {
-            const response = await fetch(`https://soybean2-server.onrender.com/api/pd_optimiser`, {
+            const response = await fetch(`http://3.16.192.151:8000/api/pd_optimiser`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data),
