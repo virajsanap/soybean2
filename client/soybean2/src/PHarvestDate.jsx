@@ -1,16 +1,35 @@
-import React from "react";
+import React,{useContext} from "react";
 import NPiedmontImage from './assets/N_Piedmont_bw.png';
+import SPiedmontImage from './assets/S_Piedmont_bw.png';
+import S_Costal_Image from './assets/S_Coastal_Plain_bw.png';
+import N_Costal_Image from './assets/N_Coastal_Plain_bw.png';
+import Tidewater_Image from './assets/Tidewater_bw.png';
 import { RegionContext, RegionProvider } from "./RegionContext";
 
 
 function PHarvestDate(){
+    const Region = useContext(RegionContext)
+
+    const regionImages = {
+        "Tidewater": Tidewater_Image,
+        "N. Coastal Plain": N_Costal_Image,
+        "N. Piedmont": NPiedmontImage,
+        "S. Piedmont": SPiedmontImage,
+        "S. Coastal Plain": S_Costal_Image,
+    };
+
+    const getRegionImg = (region) => {
+        return regionImages[region.selectedRegion];
+    };
     return(
         <div className="container mt-4">
         <h2>Harvest Date Predictions</h2>
         
         <div className="text-center my-4">
+        
         <img 
-            src={NPiedmontImage} 
+        
+            src= {getRegionImg(Region)} 
             alt="SoyStage Harvest Predictions" 
             className="img-fluid rounded" 
             style={{ maxHeight: '400px', objectFit: 'cover' }}

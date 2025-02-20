@@ -1,12 +1,14 @@
 import React,{useState}from "react";
 import { MapContainer, TileLayer, GeoJSON } from "react-leaflet";
+import Legend from "./Legend";
 
 // The Map component receives GeoJSON data, styling functions, and event handlers as props
-const Map = ({ geoJsonData, geoJsonStyle, highlightFeature, resetHighlight, zoomLevel,height,onRegionSelect }) => {
+const Map = ({ geoJsonData, geoJsonStyle, highlightFeature, resetHighlight, zoomLevel,height,onRegionSelect,regionColors }) => {
     return (
+        <div style={{ position: "relative", height: height, width: "100%" }}>
         <MapContainer
             style={{ height: height, width: "100%" }}
-            center={[35.5, -78.2]} // Center on North Carolina
+            center={[35.5, -78.0]} // Center on North Carolina
             zoom={zoomLevel}
             zoomSnap={0}
             zoomDelta={0.5}
@@ -34,7 +36,10 @@ const Map = ({ geoJsonData, geoJsonStyle, highlightFeature, resetHighlight, zoom
             />
             
         </MapContainer>
+        {/* <div className="d-flex justify-content-center align-items-center"> */}
+        <Legend regionColors={regionColors} />
         
+        </div>
     );
 };
 

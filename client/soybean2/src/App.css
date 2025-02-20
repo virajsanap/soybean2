@@ -26,3 +26,48 @@
 #main-content {
     flex: 1;
   }
+
+  .legend {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: white;
+    padding: 8px; /* Reduced padding */
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    max-width: 150px; /* Reduced max-width */
+}
+
+.legend h5 {
+    margin-top: 0;
+    font-size: 12px; /* Reduced font size */
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 3px; /* Reduced margin */
+}
+
+.legend-color {
+    width: 15px; /* Reduced width */
+    height: 15px; /* Reduced height */
+    margin-right: 8px; /* Reduced margin */
+    border-radius: 3px;
+}
+
+.legend-label {
+    font-size: 10px; /* Reduced font size */
+}
+
+/* Media query for mobile screens */
+@media (max-width: 768px) {
+    .legend {
+        top: 10px;
+        right: 10px;
+        width: auto; /* Allow the legend to adjust its width */
+        max-width: 120px; /* Further reduced max-width for mobile */
+    }
+}
+

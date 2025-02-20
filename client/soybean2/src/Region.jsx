@@ -1,8 +1,8 @@
 import React,{useState,useEffect,createContext, useContext } from "react";
 import Map from './Map'
-import { MapContainer, TileLayer, GeoJSON } from "react-leaflet";
+// import { MapContainer, TileLayer, GeoJSON } from "react-leaflet";
 import { useMediaQuery } from 'react-responsive';
-import ncGeoJson from "./resources/ncstate_counties.json";
+// import ncGeoJson from "./resources/ncstate_counties.json";
 import ncRegionsGeoJson from './resources/ncregions_counties_merged.json';
 import { RegionContext} from "./RegionContext";
 //try
@@ -10,7 +10,7 @@ import { RegionContext} from "./RegionContext";
 function Region(){
 
     const zoomd = 6.5; // Default zoom for desktop
-    const zoomm = 5.6;   // Default zoom for mobile
+    const zoomm = 5.2;   // Default zoom for mobile
     const isMobile = useMediaQuery({ maxWidth: 768 });
     const [zoomLevel, setZoomLevel] = useState(isMobile ? zoomm : zoomd);
     const [highlightedRegion, setHighlightedRegion] = useState(null);
@@ -131,6 +131,7 @@ function Region(){
                             zoomLevel={zoomLevel}
                             height="400px"
                             onRegionSelect={handleRegionSelect}
+                            regionColors={regionColors}
                         />
                         </div>
                         {/* <p>Selected Region: {selectedRegion}</p> */}
@@ -156,6 +157,7 @@ function Region(){
                             zoomLevel={zoomLevel}
                             height = "200px"
                             onRegionSelect={handleRegionSelect}
+                            regionColors={regionColors}
                         /> 
                         </div>
                         {/* <p>Selected Region: {selectedRegion}</p> */}
@@ -191,25 +193,3 @@ function Region(){
 }
 
 export default Region;
-
-
-{/* <div className="col-lg-7 col-12 mb-3">
-                            <div style={{ height: "400px", backgroundColor: "#d9d9d9" }} className="d-flex justify-content-center align-items-center">
-                            <MapContainer
-                            style={{ height: "400px", width: "100%" }}
-                            center={[35.5, -78.2]} // Center on North Carolina
-                            zoom={zoomLevel}
-                            zoomSnap={0}
-                            zoomDelta={0.5} 
-                            >
-                            <TileLayer
-                                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                            />
-                            <GeoJSON
-                                data={ncGeoJson}
-                                style={geoJsonStyle}
-                            />
-                            </MapContainer>
-                            </div>
-                    </div> */}
