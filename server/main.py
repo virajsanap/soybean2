@@ -9,7 +9,7 @@ from collections import defaultdict
 app = Flask(__name__, static_folder='../../client/soybean2/build', static_url_path='')
 
 # Configure CORS for API endpoints
-cors = CORS(app)
+cors = CORS(app,resources={r"/api/*": {"origins": "http://3.16.192.151:5173"}})
 
 # Configuration
 MAX_YIELD = 125
