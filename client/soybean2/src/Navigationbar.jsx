@@ -4,17 +4,38 @@ import Content from "./Content";
 function Navigationbar(){
 
     const [activeTab, setActiveTab] = useState("Select Region");
+    const tabs = [
+        "Select Region",
+        "PD Optimizer",
+        "MG Optimizer",
+        "Harvest Dates",
+        "About",
+        "Tutorial",
+    ];
 
     const handleTabClick = (e, tabName) => {
-        e.preventDefault(); // Prevent default link behavior
-        setActiveTab(tabName);
+        // e.preventDefault(); // Prevent default link behavior
+        if (tabName!=="Report"){
+            e.preventDefault();
+            setActiveTab(tabName);
+        }
         closeNavbar();
     };
-    
-    // const handleTabClick = (tabName) => {
-    //     setActiveTab(tabName);
-    //     closeNavbar();
-    // };
+
+    const goTonextTab = () =>{
+        const currentIndex = tabs.indexOf(activeTab)
+        if (currentIndex<tabs.length-1){
+            setActiveTab(tabs[currentIndex+1])
+        }
+        
+    };
+
+    const goToPrevTab = () =>{
+        const currentIndex = tabs.indexOf(activeTab)
+        if (currentIndex>0){
+            setActiveTab(tabs[currentIndex-1])
+        }
+    }
 
     const closeNavbar = () => {
         const navbarContent = document.getElementById("navbarContent");
@@ -23,12 +44,20 @@ function Navigationbar(){
         }
       };
 
+    const currentIndex =tabs.indexOf(activeTab);
+    const showPreviousButton = currentIndex>0;
+    const showNextButton = currentIndex<tabs.length-1;
+    const nextTab = (currentIndex<tabs.length-1)?tabs[currentIndex+1]:null
+    const prevTab = (currentIndex>0)?tabs[currentIndex-1]:null
+
     return(
         <>
         <nav className="navbar navbar-expand-lg navbar-light bg-danger px-4 w-100" >
-            <div className="container-fluid">
+            <div className="container-fluid d-flex align-items-center">
+            <div className="d-flex align-items-center w-100">
+                {/* menu icon */}
                 <button
-                className="navbar-toggler"
+                className="navbar-toggler flex-shrink-0"
                 type="button"
                 data-bs-toggle="collapse"
                 data-bs-target="#navbarContent"
@@ -38,7 +67,17 @@ function Navigationbar(){
                 >
                 <span className="navbar-toggler-icon"></span>
                 </button>
-
+                {showPreviousButton && (
+                    <button className="btn btn-outline-dark d-lg-none ms-2 flex-shrink-0" style={{ fontSize: "0.9rem" }} onClick={goToPrevTab}>
+                        &lt; {prevTab}
+                    </button>
+                )}
+                {showNextButton && (
+                    <button className="btn btn-outline-dark d-lg-none ms-2 flex-shrink-0" style={{ fontSize: "0.9rem" }} onClick={goTonextTab}>
+                        {nextTab} &gt;
+                    </button>
+                )}
+            </div>
                 <div className="collapse navbar-collapse" id="navbarContent">
                 <ul className="navbar-nav w-70 mx-auto justify-content-center">
                     <li className="nav-item me-4 ">
@@ -57,7 +96,7 @@ function Navigationbar(){
                     </a>
                     </li>
                     <li className="nav-item me-5">
-                    <a className={`nav-link fw-bold ${ activeTab === "Predicted Harvest Dates" ? "active" : ""}`} href="#pharvestdate" onClick={(e) => handleTabClick(e,"Predicted Harvest Dates")}>
+                    <a className={`nav-link fw-bold ${ activeTab === "Harvest Dates" ? "active" : ""}`} href="#pharvestdate" onClick={(e) => handleTabClick(e,"Predicted Harvest Dates")}>
                         Predicted Harvest Date
                     </a>
                     </li>

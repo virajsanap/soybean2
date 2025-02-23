@@ -16,7 +16,7 @@ function Content({activeTab}){
             {activeTab === "Select Region" && <Region />}
             {activeTab ==="PD Optimizer" && <PDOptimizer/>}
             {activeTab ==="MG Optimizer" && <MGOptimizer/>}
-            {activeTab ==="Predicted Harvest Dates" && <PHarvestDate/>}
+            {activeTab ==="Harvest Dates" && <PHarvestDate/>}
             {activeTab ==="About" && <About/>}
             {activeTab ==="Tutorial" && <Tutorial/>}
         </div>
