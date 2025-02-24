@@ -6,7 +6,8 @@ from datetime import datetime
 from collections import defaultdict
 import logging
 from functools import wraps
-
+import json
+from ip2geotools.databases.noncommercial import DbIpCity
 
 app = Flask(__name__, static_folder='../../client/soybean2/build', static_url_path='')
 
@@ -26,6 +27,8 @@ MODEL_PATHS = {
 current_model = None
 processed_data = None
 preloaded_models = {}
+
+user_visits = []
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -95,6 +98,35 @@ def index():
 @errorHandler
 def home():
     return jsonify(message="Hello from the optimized Flask backend!")
+
+# Track user visits
+@app.route("/api/track_visit", methods=["GET"])
+@errorHandler
+def track_user_visit():
+    ip = request.remote_addr  # Getting user IP
+    timestamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+
+    try:
+        response = DbIpCity.get(ip, apiKey="free")  
+        location = f"{response.city}, {response.region}, {response.country}"
+    except Exception as e:
+        logging.error(f"Geolocation API failure for IP {ip}: {e}")
+        location = "Unknown"
+
+    visit_data = {
+        "ip": ip,
+        "location": location,
+        "timestamp": timestamp
+    }
+    user_visits.append(visit_data)  
+    
+    return jsonify(message="Visit logged successfully")
+
+# Get all visits
+@app.route("/api/get_visits", methods=["GET"])
+@errorHandler
+def get_visits():
+    return jsonify(visits=user_visits) 
 
 @app.route('/api/select_region', methods=['POST'])
 @errorHandler
