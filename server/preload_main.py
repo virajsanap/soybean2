@@ -2,7 +2,7 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 import numpy as np
 import joblib
-from datetime import datetime
+from datetime import datetime,timezone
 from collections import defaultdict
 import logging
 from functools import wraps
@@ -104,10 +104,10 @@ def home():
 @errorHandler
 def track_user_visit():
     ip = request.remote_addr  # Getting user IP
-    timestamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+    timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
 
     try:
-        response = DbIpCity.get(ip, apiKey="free")  
+        response = DbIpCity.get(ip)  
         location = f"{response.city}, {response.region}, {response.country}"
     except Exception as e:
         logging.error(f"Geolocation API failure for IP {ip}: {e}")
