@@ -100,7 +100,7 @@ def home():
     return jsonify(message="Hello from the optimized Flask backend!")
 
 # Track user visits
-@app.route("/api/track_visit", methods=["GET"])
+@app.route("/api/track_visit", methods=['POST'])
 @errorHandler
 def track_user_visit():
     ip = request.remote_addr  # Getting user IP
