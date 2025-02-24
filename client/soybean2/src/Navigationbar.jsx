@@ -53,8 +53,8 @@ function Navigationbar(){
     return(
         <>
         <nav className="navbar navbar-expand-lg navbar-light bg-danger px-4 w-100" >
-            <div className="container-fluid d-flex align-items-center">
-            <div className="d-flex align-items-center w-100">
+            <div className="container-fluid">
+            <div className="d-flex align-items-center ">
                 {/* menu icon */}
                 <button
                 className="navbar-toggler flex-shrink-0"
@@ -79,29 +79,29 @@ function Navigationbar(){
                 )}
             </div>
                 <div className="collapse navbar-collapse" id="navbarContent">
-                <ul className="navbar-nav w-70 mx-auto justify-content-center">
-                    <li className="nav-item me-4 ">
+                <ul className="navbar-nav mx-auto justify-content-center">
+                    <li className="nav-item mx-2">
                     <a className={`nav-link fw-bold ${ activeTab === "Select Region" ? "active" : ""}`} href="/" aria-current="page" onClick={(e) => handleTabClick(e, "Select Region")}>
                         Select Region
                     </a>
                     </li>
-                    <li className="nav-item me-5">
+                    <li className="nav-item mx-2">
                     <a className={`nav-link fw-bold ${activeTab === "PD Optimizer" ? "active" : ""}`} href="#pd-optimizer" onClick={(e) => handleTabClick(e,"PD Optimizer")}>
                         PD Optimizer
                     </a>
                     </li>
-                    <li className="nav-item me-5">
-                    <a className={`nav-link fw-bold ${ activeTab === "MG Optimizer" ? "active" : ""}`} href="#mg-optimizer" onClick={(e) => handleTabClick(e,"MG Optimizer")}>
+                    <li className="nav-item mx-2">
+                    <a className={`nav-link fw-bold  ${ activeTab === "MG Optimizer" ? "active" : ""}`} href="#mg-optimizer" onClick={(e) => handleTabClick(e,"MG Optimizer")}>
                         MG Optimizer
                     </a>
                     </li>
-                    <li className="nav-item me-5">
-                    <a className={`nav-link fw-bold ${ activeTab === "Harvest Dates" ? "active" : ""}`} href="#pharvestdate" onClick={(e) => handleTabClick(e,"Predicted Harvest Dates")}>
+                    <li className="nav-item mx-2">
+                    <a className={`nav-link fw-bold ${ activeTab === "Harvest Dates" ? "active" : ""}`} href="#pharvestdate" onClick={(e) => handleTabClick(e,"Harvest Dates")}>
                         Predicted Harvest Date
                     </a>
                     </li>
 
-                    <li className="nav-item dropdown">
+                    <li className="nav-item mx-2 dropdown">
                     <a
                         className={`nav-link fw-bold dropdown-toggle ${
                             activeTab === "More" ? "active" : ""
