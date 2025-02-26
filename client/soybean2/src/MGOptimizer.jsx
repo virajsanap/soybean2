@@ -24,8 +24,8 @@ function MGOptimizer(){
         };
 
         try {
-            // const response = await fetch(`http://3.16.192.151:8000/api/mg_optimiser`, {
-            const response = await fetch(`http://localhost:8000/api/mg_optimiser`, {
+            const response = await fetch(`http://3.16.192.151:8000/api/mg_optimiser`, {
+            // const response = await fetch(`http://localhost:8000/api/mg_optimiser`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data),
