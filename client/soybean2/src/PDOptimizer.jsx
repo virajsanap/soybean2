@@ -26,7 +26,8 @@ function PDOptimizer(){
         };
 
         try {
-            const response = await fetch(`http://3.16.192.151:8000/api/pd_optimiser`, {
+            // const response = await fetch(`http://3.16.192.151:8000/api/pd_optimiser`, {
+            const response = await fetch(`http://localhost:8000/api/pd_optimiser`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data),
@@ -95,7 +96,7 @@ function PDOptimizer(){
                     <input 
                     type="date" 
                     className="form-control" 
-                    value="2024-04-01"
+                    value={startDate}
                     onChange={(e)=>setStartDate(e.target.value)} 
                     />
                 </div>
@@ -106,7 +107,7 @@ function PDOptimizer(){
                     <input 
                     type="date" 
                     className="form-control" 
-                    value="2024-08-15" 
+                    value={endDate} 
                     onChange={(e)=>setEndDate(e.target.value)}
                     />
                 </div>

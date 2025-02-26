@@ -11,7 +11,7 @@ from ip2geotools.databases.noncommercial import DbIpCity
 
 app = Flask(__name__, static_folder='../../client/soybean2/build', static_url_path='')
 
-cors = CORS(app,resources={r"/api/*": {"origins": "http://3.16.192.151:5173"}})
+CORS(app, resources={r"/api/*": {"origins": ["http://3.16.192.151:5173", "http://localhost:5173", "http://127.0.0.1:5173"]}})
 
 # Configuration
 MAX_YIELD = 125
@@ -48,7 +48,16 @@ def errorHandler(func):
 def day_num_to_date(day_num):
     return datetime.strptime(f"2024-{int(day_num)}", "%Y-%j").strftime("%m/%d/%Y")
 
-def generate_plot_data(x_values, y_values, optimal_point):
+def generate_plot_data(x_values, y_values, optimal_point,x_range=None):
+    layout = {
+        "yaxis": {"range": [min(y_values)-5, max(y_values)+5]},
+        "showlegend": True
+    }
+    if x_range is not None:
+        layout["xaxis"] = {
+            "range": x_range,
+            "type": "linear"  # Explicitly set axis type to linear
+        }
     return {
         "data": [
             {
@@ -66,10 +75,7 @@ def generate_plot_data(x_values, y_values, optimal_point):
                 "name": "Optimal Point"
             }
         ],
-        "layout": {
-            "yaxis": {"range": [min(y_values)-5, max(y_values)+5]},
-            "showlegend": True
-        }
+        "layout": layout
     }
 
 def preload_models():
@@ -235,9 +241,11 @@ def mg_optimiser():
         
     # Generate plot data
     plot_data = generate_plot_data(
-        x_values=[f"{mg:.1f}" for mg in mgs],
+        # x_values=[f"{mg:.1f}" for mg in mgs],
+        x_values=mgs,
         y_values=averages,
-        optimal_point=(f"{mgs[optimal_idx]:.1f}", averages[optimal_idx])
+        optimal_point=(f"{mgs[optimal_idx]:.1f}", averages[optimal_idx]),
+        x_range=[mg_min,mg_max]
     )
 
     return jsonify({

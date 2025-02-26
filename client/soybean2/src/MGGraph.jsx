@@ -3,7 +3,7 @@ import Plot from "react-plotly.js";
 
 const MGGraph = ({ plotData, layout, optimalDate }) => {
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-    const MGRange = [2,8]
+    // const MGRange = [2,8]
     // Handle window resizing to detect device type
     useEffect(() => {
       const handleResize = () => {
@@ -21,13 +21,14 @@ const MGGraph = ({ plotData, layout, optimalDate }) => {
       margin: { l: 40, r: 20, t: 30, b: 60 },
       xaxis: {
         ...layout?.xaxis,
-        range: MGRange,
+        title: "Maturity Group",
         tickangle: -90,
         tickfont: { size: 7 },
         automargin: true,
       },
       yaxis: {
         ...layout?.yaxis,
+        title: "Relative yeild potential",
         tickfont: { size: 7 },
         automargin: true,
       },
@@ -41,13 +42,14 @@ const MGGraph = ({ plotData, layout, optimalDate }) => {
       margin: { l: 50, r: 30, t: 50, b: 70 },
       xaxis: {
         ...layout?.xaxis,
-        range: MGRange,
+        title: "Maturity Group",
         tickangle: 0,
         tickfont: { size: 12 },
         automargin: true,
       },
       yaxis: {
         ...layout?.yaxis,
+        title: "Relative yeild potential",
         tickfont: { size: 12 },
         automargin: true,
       },

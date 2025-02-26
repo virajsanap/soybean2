@@ -19,12 +19,14 @@ const PDGraph = ({ plotData, layout, optimalDate }) => {
     margin: { l: 40, r: 20, t: 30, b: 60 },
     xaxis: {
       ...layout.xaxis,
+      title: "Planting Dates",
       tickangle: -90,
       tickfont: { size: 7 },
       automargin: true,
     },
     yaxis: {
       ...layout.yaxis,
+      title: "Relative yeild potential",
       tickfont: { size: 4 },
       automargin: true,
     },
@@ -38,12 +40,14 @@ const PDGraph = ({ plotData, layout, optimalDate }) => {
     margin: { l: 40, r: 30, t: 40, b: 70 },
     xaxis: {
       ...layout.xaxis,
+      title: "Planting Dates",
       tickangle: -90,
       tickfont: { size: 12 },
       automargin: true,
     },
     yaxis: {
       ...layout.yaxis,
+      title: "Relative yeild potential",
       tickfont: { size: 12 },
       automargin: true,
     },

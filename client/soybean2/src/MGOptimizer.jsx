@@ -24,7 +24,8 @@ function MGOptimizer(){
         };
 
         try {
-            const response = await fetch(`http://3.16.192.151:8000/api/mg_optimiser`, {
+            // const response = await fetch(`http://3.16.192.151:8000/api/mg_optimiser`, {
+            const response = await fetch(`http://localhost:8000/api/mg_optimiser`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data),
@@ -62,15 +63,27 @@ function MGOptimizer(){
       }
     };
 
-    // Improve useEffect validation
     useEffect(() => {
-      const min = parseFloat(MGMinValue);
-      const max = parseFloat(MGMaxValue);
-      const isValid = !isNaN(min) && !isNaN(max) && min < max;
-      
-      setIsDataReady(isValid);
-      setError(isValid ? '' : 'Minimum must be less than Maximum');
-    }, [MGMinValue, MGMaxValue]);
+        const min = parseFloat(MGMinValue);
+        const max = parseFloat(MGMaxValue);
+        const isValid = !isNaN(min) && !isNaN(max) && min < max;
+    
+        setIsDataReady(isValid);
+        setError(isValid ? '' : 'Minimum must be less than Maximum');
+    
+        // Update layout with new x-axis range
+        if (MgPlotData) {
+            setLayout(prevLayout => ({
+                ...prevLayout,
+                xaxis: { 
+                    ...prevLayout.xaxis, 
+                    range: [min, max],
+                    type: 'linear'  // Ensure axis type is linear
+                }
+            }));
+        }
+    }, [MGMinValue, MGMaxValue, MgPlotData]);
+    
 
     const generateOptions = (start,end,step)=>{
         const options = [];
@@ -93,7 +106,7 @@ function MGOptimizer(){
                     <input 
                     type="date" 
                     className="form-control" 
-                    value="2024-04-01"
+                    value={startDate}
                     onChange={(e)=>setStartDate(e.target.value)} 
                     />
                 </div>
@@ -104,7 +117,7 @@ function MGOptimizer(){
                     <input 
                     type="date" 
                     className="form-control" 
-                    value="2024-08-15" 
+                    value={endDate} 
                     onChange={(e)=>setEndDate(e.target.value)} 
                     />
                 </div>
