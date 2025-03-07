@@ -4,7 +4,7 @@ import { RegionContext, RegionProvider } from "./RegionContext";
 import PDGraph from "./PDGraph";
 
 function PDOptimizer(){
-    const Region = useContext(RegionContext)
+    const {selectedRegion} = useContext(RegionContext)
     const [MGMinValue,setMGMinValue] = useState('2.0')
     const [MGMaxValue,setMGMaxValue] = useState('8.0')
     const [startDate, setStartDate] = useState('2024-04-01');
@@ -87,7 +87,10 @@ function PDOptimizer(){
         <>
         <div className="container">
             <h2>Planting Date Optimization</h2>
-            {/* <p>Selected location is {Region}</p> */}
+            <h4>
+            <h4>Region Selected : <i><u>{selectedRegion}</u></i></h4>
+            </h4>
+            <hr/>
             <h4>Adjust Planting Date and Maturity Groups</h4>
             <div className="row mb-3">
                 <div className="col-md-3">

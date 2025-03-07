@@ -22,7 +22,7 @@ function PHarvestDate(){
         return regionImages[region.selectedRegion];
     };
     return(
-        <div className="container mt-4">
+        <div className="container mt-2">
         <h2>Harvest Date Predictions</h2>
         
         <div className="text-center my-4">

@@ -1,10 +1,11 @@
-import React, { useState,useEffect } from "react";
+import React, { useState,useEffect, useContext } from "react";
 import { InputGroup, Form, Alert, Button } from 'react-bootstrap';
 import { RegionContext, RegionProvider } from "./RegionContext";
 import MGGraph from "./MGGraph";
 
 
 function MGOptimizer(){
+    const {selectedRegion} = useContext(RegionContext);
     const [MgPlotData, setMgPlotData] = useState(null)
     const [MgOptimalDate, setMgOptimalDate] = useState("");
     const [layout, setLayout] = useState({});
@@ -97,7 +98,8 @@ function MGOptimizer(){
         <>
         <div className="container">
             <h2>Maturity Group Optimization</h2>
-            {/* <p>Selected location is <em>N. Piedmont</em></p> */}
+            <h4>Region Selected : <i><u>{selectedRegion}</u></i></h4>
+            <hr/>
             <h4>Adjust Planting Date and Maturity Groups</h4>
             <div className="row mb-3">
                 <div className="col-md-3">

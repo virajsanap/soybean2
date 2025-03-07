@@ -1,36 +1,43 @@
-import { useState,useEffect } from 'react'
-import './App.css'
-import Header from './Header.jsx'
-import Navigationbar from './Navigationbar.jsx'
-import Content from './Content.jsx'
-import Footer from './Footer.jsx'
+// App.jsx
+import { useEffect } from 'react';
+import { Routes, Route } from "react-router-dom";
+import './App.css';
+import Header from './Header.jsx';
+import Navigationbar from './Navigationbar.jsx';
+import Footer from './Footer.jsx';
 import 'leaflet/dist/leaflet.css';
-import { RegionProvider } from "./RegionContext";
-import { TrackUsers } from './TrackUsers.js'
+import { TrackUsers } from './TrackUsers.js';
+
+// Import the views (pages)
+import Region from "./Region";
+import PDOptimizer from "./PDOptimizer";
+import MGOptimizer from "./MGOptimizer";
+import PHarvestDate from "./PHarvestDate";
+import About from "./About";
+import Tutorial from "./Tutorial";
 
 function App() {
-  // const [count, setCount] = useState(0)
   useEffect(() => {
-    TrackUsers();  // Call the function to track visits
+    TrackUsers(); // Call the function to track visits
   }, []);
 
   return (
     <div className="d-flex flex-column min-vh-100">
-      {/* Header */}
-      <RegionProvider>
       <Header />
-
-      {/* Navigation Bar */}
       <Navigationbar />
-
-      {/* Main Content Wrapper */}
-      {/* <Content /> */}
-      {/* Footer */}
+      <main className="flex-grow-1 p-2">
+        <Routes>
+          <Route path="/" element={<Region />} />
+          <Route path="/pd-optimizer" element={<PDOptimizer />} />
+          <Route path="/mg-optimizer" element={<MGOptimizer />} />
+          <Route path="/harvest-dates" element={<PHarvestDate />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/tutorial" element={<Tutorial />} />
+        </Routes>
+      </main>
       <Footer />
-      </RegionProvider>
     </div>
-    
-  )
+  );
 }
 
-export default App
+export default App;
